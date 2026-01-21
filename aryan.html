@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Birthday!</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Poppins', Arial, sans-serif; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(270deg, #ffecd2, #fcb69f, #ff9a9e, #f6d365);
+      background-size: 600% 600%;
+      animation: gradientMove 10s ease infinite;
+      overflow: hidden;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Balloons */
+    .balloons { position: fixed; inset: 0; pointer-events: none; }
+    .balloon {
+      position: absolute; bottom: -60px; width: 30px; height: 40px;
+      background: radial-gradient(circle at 30% 30%, #fff, var(--color));
+      border-radius: 50% 50% 45% 45%; animation: floatUp linear infinite; opacity: 0.9;
+    }
+    .balloon::after { content: ""; position: absolute; width: 2px; height: 20px; background: #555; left: 50%; top: 100%; }
+    @keyframes floatUp { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-120vh); opacity: 0; } }
+
+    /* Confetti */
+    .confetti { position: fixed; width: 8px; height: 14px; background: hsl(var(--hue),80%,60%); top: -20px; animation: fall 3s linear forwards; pointer-events: none; z-index: 10; }
+    @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+    /* Card */
+    .card {
+      position: relative; background: white; padding: 30px 26px 34px; border-radius: 28px;
+      text-align: center; width: 90%; max-width: 420px; z-index: 1;
+      box-shadow: 0 0 40px rgba(255,165,0,0.4);
+    }
+
+    h1 { color: #ff7a18; min-height: 48px; font-size: 28px; margin-bottom: 10px; }
+    p { color: #444; margin-bottom: 14px; font-size: 16px; }
+
+    /* Countdown */
+    .countdown { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0 18px; }
+    .time-box { background: #fff7ef; border-radius: 16px; padding: 8px 6px; box-shadow: inset 0 0 0 1px #ffd3b6; }
+    .time-box span { display: block; font-size: 20px; font-weight: 700; color: #ff7a18; }
+    .time-box small { font-size: 11px; color: #777; }
+
+    /* Cake */
+    .cake { width: 120px; margin: 16px auto 6px; position: relative; animation: bounce 2s ease-in-out infinite; cursor: pointer; }
+    .cake .layer { height: 26px; border-radius: 10px; margin-bottom: 4px; background: linear-gradient(135deg, #ffb347, #ff7a18); }
+    .cake .layer.middle { background: linear-gradient(135deg, #ffd56b, #ff9f1c); }
+    .cake .layer.top { background: linear-gradient(135deg, #fff0c1, #ffd56b); }
+
+    .candle { width: 8px; height: 18px; background: repeating-linear-gradient(45deg,#ff4d6d,#ff4d6d 4px,#fff 4px,#fff 8px); margin: 0 auto 2px; border-radius: 4px; position: relative; }
+    .flame { width: 10px; height: 10px; background: radial-gradient(circle,#ffd166,#ff9f1c); border-radius: 50%; position: absolute; top: -10px; left: -1px; animation: flicker .8s infinite; }
+    .flame.off { animation: none; opacity: 0; }
+
+    @keyframes flicker { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.8); opacity: .7; } }
+    @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+    .blow-hint { font-size: 12px; color: #888; margin-top: 4px; }
+
+    /* GIF */
+    .gif-container { display: none; margin: 14px 0 18px; animation: popIn .6s ease forwards; }
+    .gif-container img { max-width: 100%; border-radius: 18px; }
+    @keyframes popIn { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .message { margin-top: 8px; font-size: 18px; color: #ff7a18; display: none; font-weight: bold; }
+
+    /* Cursor trail */
+    .cursor-dot { position: fixed; width: 6px; height: 6px; background: hsl(var(--hue),80%,60%); border-radius: 50%; pointer-events: none; animation: fadeOut 1s forwards; z-index: 20; }
+    @keyframes fadeOut { to { opacity: 0; transform: scale(.3); } }
+  </style>
+</head>
+<body>
+  <div class="balloons"></div>
+
+  <div class="card">
+    <h1 id="typeText"></h1>
+    <p>Counting down to your special day 🎂</p>
+
+    <div class="countdown">
+      <div class="time-box"><span id="days">0</span><small>Days</small></div>
+      <div class="time-box"><span id="hours">0</span><small>Hours</small></div>
+      <div class="time-box"><span id="minutes">0</span><small>Minutes</small></div>
+      <div class="time-box"><span id="seconds">0</span><small>Seconds</small></div>
+    </div>
+
+    <!-- Cake (click to enable blow) -->
+    <div class="cake" id="cake">
+      <div class="candle"><div class="flame" id="flame"></div></div>
+      <div class="layer top"></div>
+      <div class="layer middle"></div>
+      <div class="layer"></div>
+    </div>
+    <div class="blow-hint" id="blowHint">Tap the cake, allow mic, then blow 🎤💨</div>
+
+    <button id="yesBtn">Celebrate 🎉</button>
+
+    <div class="message" id="message">🎉 Happy Birthday Khushi! 🎂<br>May your day be filled with laughter, surprises, and endless happiness.<br></div>
+  </div>
+
+  <!-- Background Music -->
+  <audio id="bgMusic" loop>
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3c8f1b6c6b.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    /* Typing */
+    const nameText = "Happy Birthday, Khushi! 🎉";
+    const typeTextEl = document.getElementById('typeText'); let i = 0;
+    (function typeLoop(){ if(i < nameText.length){ typeTextEl.textContent += nameText[i++]; setTimeout(typeLoop,80);} })();
+
+    /* Countdown to 3 February 2026 */
+    const target = new Date('February 3, 2026 00:00:00').getTime();
+    function updateCountdown(){
+      const now = Date.now(); const diff = target - now;
+      if(diff <= 0){ document.querySelector('.countdown').innerHTML = "🎉 It's your birthday! 🎉"; launchConfetti(); return; }
+      days.textContent = Math.floor(diff/(1000*60*60*24));
+      hours.textContent = Math.floor((diff/(1000*60*60))%24);
+      minutes.textContent = Math.floor((diff/(1000*60))%60);
+      seconds.textContent = Math.floor((diff/1000)%60);
+    }
+    setInterval(updateCountdown,1000); updateCountdown();
+
+    const yesBtn = document.getElementById('yesBtn');
+    
+    const message = document.getElementById('message');
+    const balloonsContainer = document.querySelector('.balloons');
+    const music = document.getElementById('bgMusic');
+
+    yesBtn.addEventListener('click', () => {
+      yesBtn.style.display = 'none';  message.style.display = 'block';
+      launchConfetti(); music.volume = 0.6; music.play().catch(()=>{});
+    });
+
+    /* Balloons */
+    function createBalloon(){ const b=document.createElement('div'); b.className='balloon'; b.style.left=Math.random()*100+'vw'; b.style.animationDuration=6+Math.random()*4+'s'; b.style.setProperty('--color',`hsl(${Math.random()*360},80%,60%)`); balloonsContainer.appendChild(b); setTimeout(()=>b.remove(),10000);} setInterval(createBalloon,500);
+
+    /* Confetti */
+    function launchConfetti(){ for(let i=0;i<90;i++){ const c=document.createElement('div'); c.className='confetti'; c.style.left=Math.random()*100+'vw'; c.style.setProperty('--hue',Math.random()*360); document.body.appendChild(c); setTimeout(()=>c.remove(),3000);} }
+
+    /* Cursor trail */
+    document.addEventListener('mousemove', e=>{ const d=document.createElement('div'); d.className='cursor-dot'; d.style.left=e.clientX+'px'; d.style.top=e.clientY+'px'; d.style.setProperty('--hue',Math.random()*360); document.body.appendChild(d); setTimeout(()=>d.remove(),1000); });
+
+    /* 🎤 Blow to extinguish candle (mic-based) */
+    const cake = document.getElementById('cake'); const flame = document.getElementById('flame'); const hint = document.getElementById('blowHint');
+    let audioCtx, analyser, micStream, listening = false, blown = false;
+
+    async function enableMic(){
+      if(listening || blown) return;
+      try{
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser(); analyser.fftSize = 512;
+        const source = audioCtx.createMediaStreamSource(micStream);
+        source.connect(analyser); listening = true; hint.textContent = 'Blow to put out the candle 💨';
+        detectBlow();
+      }catch(e){ hint.textContent = 'Mic permission needed to blow out the candle'; }
+    }
+
+    function detectBlow(){
+      if(!listening || blown) return;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      const volume = data.reduce((a,b)=>a+b,0)/data.length;
+      if(volume > 35){ // threshold for a "blow"
+        blown = true; listening = false;
+        flame.classList.add('off'); hint.textContent = '🎉 Candle blown out! Make a wish!';
+        launchConfetti();
+        if(micStream) micStream.getTracks().forEach(t=>t.stop());
+        if(audioCtx) audioCtx.close();
+        return;
+      }
+      requestAnimationFrame(detectBlow);
+    }
+
+    cake.addEventListener('click', enableMic);
+  </script>
+</body>
+</html>
